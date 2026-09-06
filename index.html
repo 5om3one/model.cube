@@ -89,9 +89,9 @@
         model: cube.mdl<br>
         type: D<br>
         X: 8 &nbsp; Y: 2 &nbsp; Z: 4<br>
-        Xangle: 0°
-        Yangle: 0°
-        Zangle: 0°
+        Xangle: <span id="angX">0</span>°<br>
+        Yangle: <span id="angY">0</span>°<br>
+        Zangle: <span id="angZ">0</span>°
     </div>
 
     <div class="scene" id="sceneContainer">
@@ -113,11 +113,11 @@
         const pivot = document.getElementById('pivot');
         const cube = document.getElementById('targetCube');
         const infoPanel = document.getElementById('infoPanel');
-
+        
         const angXText = document.getElementById('angX');
         const angYText = document.getElementById('angY');
         const angZText = document.getElementById('angZ');
-        
+
         let currentX = -20;
         let currentY = 20;
         let isDragging = false;
