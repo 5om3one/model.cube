@@ -12,7 +12,7 @@
         }
 
         body {
-            background-color: #555555; /* Серый фон сайта */
+            background-color: #555555;
             margin: 0;
             padding: 0;
             width: 100vw;
@@ -24,7 +24,6 @@
             font-family: "Courier New", monospace;
         }
 
-        /* ИНФОРМАЦИОННАЯ ПАНЕЛЬ СЛЕВА СВЕРХУ */
         #infoPanel {
             position: absolute;
             top: 20px;
@@ -35,12 +34,11 @@
             border-radius: 4px;
             font-size: 14px;
             line-height: 1.5;
-            pointer-events: none; /* Пропускает клики сквозь себя */
-            display: none; /* Скрыто по умолчанию */
+            pointer-events: none;
+            display: none;
             z-index: 100;
         }
 
-        /* 3D СРЕДА (ПЕРСПЕКТИВА И ЦЕНТР ВРАЩЕНИЯ) */
         .scene {
             width: 200px;
             height: 200px;
@@ -52,10 +50,9 @@
             height: 100%;
             position: relative;
             transform-style: preserve-3d;
-            transform: rotateX(-20deg) rotateY(20deg); /* Стартовый поворот */
+            transform: rotateX(-20deg) rotateY(20deg);
         }
 
-        /* КУБ И ЕГО ГРАНИ */
         .cube {
             width: 100%;
             height: 100%;
@@ -67,13 +64,12 @@
             position: absolute;
             width: 200px;
             height: 200px;
-            background: #aaaaaa; /* Светло-серый куб */
-            border: 1px solid #888888; /* Едва заметные внутренние стыки граней */
+            background: #aaaaaa;
+            border: 1px solid #888888;
             cursor: pointer;
             transition: border 0.1s ease;
         }
 
-        /* Позиционирование 6 граней в 3D пространстве */
         .face-front  { transform: rotateY(  0deg) translateZ(100px); }
         .face-right  { transform: rotateY( 90deg) translateZ(100px); }
         .face-back   { transform: rotateY(180deg) translateZ(100px); }
@@ -81,7 +77,6 @@
         .face-top    { transform: rotateX( 90deg) translateZ(100px); }
         .face-bottom { transform: rotateX(-90deg) translateZ(100px); }
 
-        /* Состояние при клике (Белая обводка) */
         .cube.selected .face {
             border: 3px solid #ffffff;
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
@@ -90,7 +85,6 @@
 </head>
 <body>
 
-    <!-- ИНФОРМАЦИОННОЕ ТАБЛО -->
     <div id="infoPanel">
         model: cube.mdl<br>
         type: D<br>
@@ -100,7 +94,6 @@
         Zangle: <span id="angZ">0</span>°
     </div>
 
-    <!-- ТРЕХМЕРНАЯ СЦЕНА -->
     <div class="scene" id="sceneContainer">
         <div class="pivot-point" id="pivot">
             <div class="cube" id="targetCube">
@@ -114,20 +107,17 @@
         </div>
     </div>
 
-    <!-- ЗАКОММЕНТИРОВАННЫЙ ВОПРОС D ДЛЯ АРГ -->
-    <!-- D: all and now -->
+    //all and now
 
     <script>
         const pivot = document.getElementById('pivot');
         const cube = document.getElementById('targetCube');
         const infoPanel = document.getElementById('infoPanel');
         
-        // Углы отображения в табло
         const angXText = document.getElementById('angX');
         const angYText = document.getElementById('angY');
         const angZText = document.getElementById('angZ');
 
-        // Переменные для вращения куба
         let currentX = -20;
         let currentY = 20;
         let isDragging = false;
@@ -135,7 +125,6 @@
         let previousMouseY = 0;
         let cubeClicked = false;
 
-        // ОБРАБОТКА ВРАЩЕНИЯ С ЛЮБОЙ ТОЧКИ ЭКРАНА
         window.addEventListener('mousedown', (e) => {
             isDragging = true;
             previousMouseX = e.clientX;
@@ -148,17 +137,13 @@
             const deltaX = e.clientX - previousMouseX;
             const deltaY = e.clientY - previousMouseY;
 
-            // Изменяем углы поворота вокруг центра экрана
             currentY += deltaX * 0.4;
             currentX -= deltaY * 0.4;
 
-            // Ограничиваем вращение по вертикали, чтобы куб не выворачивался наизнанку
             currentX = Math.max(-85, Math.min(85, currentX));
 
-            // Применяем вращение к центральной точке
             pivot.style.transform = `rotateX(${currentX}deg) rotateY(${currentY}deg)`;
 
-            // Обновляем динамические данные углов в инфо-панели
             angXText.innerText = Math.round(currentX);
             angYText.innerText = Math.round(currentY % 360);
 
@@ -170,7 +155,6 @@
             isDragging = false;
         });
 
-        // Поддержка мобильных экранов (тач-события)
         window.addEventListener('touchstart', (e) => {
             isDragging = true;
             previousMouseX = e.touches[0].clientX;
@@ -193,16 +177,14 @@
 
         window.addEventListener('touchend', () => { isDragging = false; });
 
-        // ЛОГИКА ВЫДЕЛЕНИЯ КУБА И СБРОСА КЛИКАМ В ПУСТОТУ
         cube.addEventListener('click', (e) => {
             cubeClicked = true;
             cube.classList.add('selected');
             infoPanel.style.display = 'block';
-            e.stopPropagation(); // Предотвращает срабатывание клика по окну window
+            e.stopPropagation();
         });
 
         window.addEventListener('click', () => {
-            // Если кликнули не на куб — сбрасываем выделение и скрываем текст
             if (!cubeClicked) {
                 cube.classList.remove('selected');
                 infoPanel.style.display = 'none';
