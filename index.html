@@ -24,13 +24,12 @@
             font-family: "Courier New", monospace;
         }
 
-        /* ИНФОРМАЦИОННАЯ ПАНЕЛЬ СЛЕВА СВЕРХУ */
         #infoPanel {
             position: absolute;
             top: 20px;
             left: 20px;
             color: #ffffff;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.4);
             padding: 15px;
             border-radius: 4px;
             font-size: 14px;
@@ -40,27 +39,18 @@
             z-index: 100;
         }
 
-        /* МИРОВАЯ СЦЕНА (ВРАЩАЕТСЯ КАМЕРА) */
-        .viewport-camera {
-            width: 100vw;
-            height: 100vh;
-            position: absolute;
-            perspective: 1000px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transform-style: preserve-3d;
-            /* Камера управляется через transform: rotateX / rotateY */
-        }
-
-        /* СТАТИЧНЫЙ МИРОВОЙ КОНТЕЙНЕР КУБА */
-        .world-space {
+        .scene {
             width: 200px;
             height: 200px;
+            perspective: 800px;
+        }
+
+        .pivot-point {
+            width: 100%;
+            height: 100%;
             position: relative;
             transform-style: preserve-3d;
-            /* Куб смещен немного в сторону от идеального центра для ощущения "где-то там" */
-            transform: translate3d(20px, -15px, 0); 
+            transform: rotateX(-20deg) rotateY(20deg);
         }
 
         .cube {
@@ -68,7 +58,6 @@
             height: 100%;
             position: absolute;
             transform-style: preserve-3d;
-            transform: rotateX(-15deg) rotateY(25deg); /* Фиксированный начальный угол куба */
         }
 
         .face {
@@ -76,7 +65,7 @@
             width: 200px;
             height: 200px;
             background: #aaaaaa;
-            border: 1px solid #777777;
+            border: 1px solid #888888;
             cursor: pointer;
             transition: border 0.1s ease;
         }
@@ -88,10 +77,9 @@
         .face-top    { transform: rotateX( 90deg) translateZ(100px); }
         .face-bottom { transform: rotateX(-90deg) translateZ(100px); }
 
-        /* Белая обводка при клике на куб */
         .cube.selected .face {
             border: 3px solid #ffffff;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
         }
     </style>
 </head>
@@ -101,14 +89,13 @@
         model: cube.mdl<br>
         type: D<br>
         X: 8 &nbsp; Y: 2 &nbsp; Z: 4<br>
-        Xangle: <span id="angX">0</span>°<br>
-        Yangle: <span id="angY">0</span>°<br>
-        Zangle: <span id="angZ">0</span>°
+        Xangle: 0°
+        Yangle: 0°
+        Zangle: 0°
     </div>
 
-    <!-- ЭКРАН С КАМЕРОЙ, КОТОРАЯ ВРАЩАЕТСЯ ВОКРУГ ЦЕНТРА -->
-    <div class="viewport-camera" id="viewport">
-        <div class="world-space">
+    <div class="scene" id="sceneContainer">
+        <div class="pivot-point" id="pivot">
             <div class="cube" id="targetCube">
                 <div class="face face-front"></div>
                 <div class="face face-back"></div>
@@ -120,64 +107,79 @@
         </div>
     </div>
 
+    <!-- all and now -->
+
     <script>
-        const viewport = document.getElementById('viewport');
+        const pivot = document.getElementById('pivot');
         const cube = document.getElementById('targetCube');
         const infoPanel = document.getElementById('infoPanel');
         
-        const angXText = document.getElementById('angX');
-        const angYText = document.getElementById('angY');
-        const angZText = document.getElementById('angZ');
-
-        // Данные модели типа D (скрытая логика вопроса D внутри структуры данных)
-        const modelData = {
-            model: "cube.mdl",
-            type: "D",
-            hiddenMeaning: "all and now" // Тот самый вопрос D, привязанный к типу D
-        };
-
+        let currentX = -20;
+        let currentY = 20;
         let isDragging = false;
-        let startX = 0, startY = 0;
-        let camRotX = 0, camRotY = 0;
+        let previousMouseX = 0;
+        let previousMouseY = 0;
         let cubeClicked = false;
 
-        // Вращаем камеру при зажатии мыши на экране
         window.addEventListener('mousedown', (e) => {
             isDragging = true;
-            startX = e.clientX;
-            startY = e.clientY;
+            previousMouseX = e.clientX;
+            previousMouseY = e.clientY;
         });
 
         window.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
 
-            camRotY += dx * 0.5;
-            camRotX -= dy * 0.5;
-            camRotX = Math.max(-70, Math.min(70, camRotX));
+            const deltaX = e.clientX - previousMouseX;
+            const deltaY = e.clientY - previousMouseY;
 
-            viewport.style.transform = `rotateX(${camRotX}deg) rotateY(${camRotY}deg)`;
+            currentY += deltaX * 0.4;
+            currentX -= deltaY * 0.4;
 
-            angXText.innerText = Math.round(camRotX);
-            angYText.innerText = Math.round(camRotY % 360);
+            currentX = Math.max(-85, Math.min(85, currentX));
 
-            startX = e.clientX;
-            startY = e.clientY;
+            pivot.style.transform = `rotateX(${currentX}deg) rotateY(${currentY}deg)`;
+
+            angXText.innerText = Math.round(currentX);
+            angYText.innerText = Math.round(currentY % 360);
+
+            previousMouseX = e.clientX;
+            previousMouseY = e.clientY;
         });
 
-        window.addEventListener('mouseup', () => { isDragging = false; });
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
 
-        // Клик по кубу выделяет его и показывает инфо с типом D
+        window.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            previousMouseX = e.touches[0].clientX;
+            previousMouseY = e.touches[0].clientY;
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const deltaX = e.touches[0].clientX - previousMouseX;
+            const deltaY = e.touches[0].clientY - previousMouseY;
+            currentY += deltaX * 0.4;
+            currentX -= deltaY * 0.4;
+            currentX = Math.max(-85, Math.min(85, currentX));
+            pivot.style.transform = `rotateX(${currentX}deg) rotateY(${currentY}deg)`;
+            angXText.innerText = Math.round(currentX);
+            angYText.innerText = Math.round(currentY % 360);
+            previousMouseX = e.touches[0].clientX;
+            previousMouseY = e.touches[0].clientY;
+        });
+
+        window.addEventListener('touchend', () => { isDragging = false; });
+
         cube.addEventListener('click', (e) => {
             cubeClicked = true;
             cube.classList.add('selected');
             infoPanel.style.display = 'block';
-            console.log("Loaded model type:", modelData.type, "->", modelData.hiddenMeaning);
             e.stopPropagation();
         });
 
-        // Клик в пустоту сбрасывает выбор
         window.addEventListener('click', () => {
             if (!cubeClicked) {
                 cube.classList.remove('selected');
